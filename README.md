@@ -1,2 +1,2 @@
 # InstaLike
-Instagram Following Bot
+Instagram Scrawler Bot
