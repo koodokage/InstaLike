@@ -6,18 +6,14 @@ namespace InstaLike
     {
         public static List<string> HashTags = new List<string>()
         {
-"#agricultura",
-"#agriculture",
-"#agri",
-"#blueberry",
-"#catlovers",
+"#countrygirl",
+"#cowgirlfashion",
+"#farmlife",
 "#cowgirl",
 "#cowgirls",
 "#cowgirlstyle",
-"#countrygirl",
-"#cowgirlfashion",
+"#agriculture",
 "#dairy",
-"#farmlife",
 "#farming",
 "#farmer",
 "#farmgirl",

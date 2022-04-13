@@ -60,7 +60,7 @@ namespace InstaLike
 
                                             if (WaitElementToLoad_SendWithAutoClickMultiple(SearchBar, searchTarget))
                                             {
-                                                WaitElementToLoad_CLICKLoop(PostClassXpathVulnabilyties, 25);
+                                                WaitElementToLoad_CLICKLoop(PostClassXpathVulnabilyties, 15);
                                             }
 
                                         }

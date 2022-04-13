@@ -21,12 +21,15 @@ namespace InstaLike
             Sleep
         }
 
+        private const int WaitCommentLimitationToPass = 10;
+        private const int CommentLimitation = 15;
         private static IWebDriver driver;
         private static IWebElement element = null;
 
         protected static int commentQuery;
         protected static int hashTagQuery;
-        protected static int totLike;
+        protected static int totaLike;
+        protected static int sessionCommented;
 
         protected static void Begin()
         {
@@ -90,7 +93,12 @@ namespace InstaLike
 
 
         }
-
+        protected static bool commentLimitAchieved = false;
+        /// <summary>
+        /// Main Comment-Like Loop Core
+        /// </summary>
+        /// <param name="XpathCore"></param>
+        /// <param name="loopCount"> Warning ! loopCount must be modded by 3 == 0</param>
         public static void WaitElementToLoad_CLICKLoop(string XpathCore, int loopCount)
         {
             Stopwatch stopwatch = new Stopwatch();
@@ -103,29 +111,34 @@ namespace InstaLike
             const string commentOpenButton = "/html/body/div[6]/div[3]/div/article/div/div[2]/div/div/div[2]/section[1]/span[2]/button";
             const string share = "/html/body/div[6]/div[3]/div/article/div/div[2]/div/div/div[2]/section[3]/div/form/button";
             const string commentBlocked = "//*[contains(text(), 'Bu gönderideki yorumlar sınırlandırıldı.')]";
-
+            loopCount = loopCount / 3;
             Random randomTime = new Random();
 
-
+            if (commentLimitAchieved)
+            {
+                Thread.Sleep(WaitCommentLimitationToPass * 60 * 1000);
+                commentLimitAchieved = false;
+            }
 
             for (int i = 1; i <= loopCount; i++)
             {
-                Thread.Sleep(100);
 
                 for (int j = 1; j <= 3; j++)
                 {
                     try
                     {
+                        Console.WriteLine($"Step 1 Select Foto");
+
                         wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath($"//*[@id=\"react-root\"]/section/main/article/div[2]/div/div[{i}]/div[{j}]")));
                         element = driver.FindElement(By.XPath($"//*[@id=\"react-root\"]/section/main/article/div[2]/div/div[{i}]/div[{j}]"));
                         element.Click();
-
+                        
+                        Console.WriteLine($"Step 2 Like Foto");
                         Thread.Sleep(randomTime.Next(10000, 15000));
                         wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath(likeButton)));
                         element = driver.FindElement(By.XPath(likeButton));
                         element.Click();
-                        totLike++;
-
+                        totaLike++;
                         // TODO : Switch Bot To Sleeping Mode
 
                         Console.ForegroundColor = ConsoleColor.Gray;
@@ -133,12 +146,12 @@ namespace InstaLike
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine("    o o.o o   ");
                         Console.WriteLine("  o         o      ");
-                        Console.WriteLine($" o         o     ");
+                        Console.WriteLine("  o         o     ");
                         Console.WriteLine("   o       o         ");
                         Console.WriteLine("     o    o       ");
                         Console.WriteLine("       o         ");
                         Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine($"Total Like Count =  {totLike}");
+                        Console.WriteLine($"Total Like Count =  {totaLike}");
                         Console.ForegroundColor = ConsoleColor.Gray;
                         Console.WriteLine($"=================================================================");
 
@@ -149,40 +162,49 @@ namespace InstaLike
                             wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath(commentOpenButton)));
                             element = driver.FindElement(By.XPath(commentOpenButton));
                             element.Click();
+                            Console.WriteLine($"Step 3.5 Click For Comment");
 
                             wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath(comment)));
                             element = driver.FindElement(By.XPath(comment));
                             element.SendKeys(Directives.BotCommentList[commentQuery]);
+
+                            Console.WriteLine($"Step 4 Select Comment : {Directives.BotCommentList[commentQuery]}");
+
                             commentQuery++;
                             if (commentQuery >= Directives.BotCommentList.Count)
-                            {
                                 commentQuery = 0;
-                            }
-                            Thread.Sleep(200);
+
+
                             wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath(share)));
                             element = driver.FindElement(By.XPath(share));
                             element.Click();
+                            Console.WriteLine($"Step 5 Send Comment");
+                            sessionCommented++;
                         }
 
-
-
-                        wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath(exitButton)));
-                        element = driver.FindElement(By.XPath(exitButton));
-                        element.Click();
-                        Thread.Sleep(randomTime.Next(200, 300));
 
                     }
 
 
                     catch (Exception ex)
                     {
-
+                        Console.WriteLine($"Error {ex.Message}");
                     }
                     finally
                     {
+                        Console.WriteLine($"Step 6 Exit PopUp Page Finally");
+                        
+                        if (sessionCommented >= CommentLimitation)
+                        {
+                            commentLimitAchieved = true;
+                            sessionCommented = 0;
+                        }
+
                         wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath(exitButton)));
                         element = driver.FindElement(By.XPath(exitButton));
                         element.Click();
+
+                        
                     }
 
                 }
@@ -196,6 +218,7 @@ namespace InstaLike
         {
             try
             {
+                Console.WriteLine($"Step 3 Check Is Commentable");
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
                 OpenQA.Selenium.Support.UI.WebDriverWait wait = new OpenQA.Selenium.Support.UI.WebDriverWait(driver, TimeSpan.FromSeconds(5));
@@ -219,9 +242,12 @@ namespace InstaLike
             }
             catch (Exception)
             {
+                return false;
+
             }
 
             return false;
+
 
         }
 
@@ -274,7 +300,7 @@ namespace InstaLike
             element = driver.FindElement(By.XPath(listPath));
             element.Click();
 
-
+            wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath($"//*[@id=\"react-root\"]/section/main/article/div[2]/div/div[{1}]/div[{1}]")));
 
             if (element != null)
             {
